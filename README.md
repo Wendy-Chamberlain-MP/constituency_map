@@ -1,6 +1,6 @@
 # Constituency Map
 
-A searchable constituency map of North East Fife, which including electoral and other boundaries.
+A searchable constituency map of North East Fife, including electoral and other boundaries.
 
 ## Data Sources
 
