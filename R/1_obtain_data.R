@@ -2,7 +2,7 @@
 
 # load packages
 library(sf)
-library(tidyverse)
+library(dplyr)
 library(sgapi)
 
 
@@ -18,7 +18,7 @@ uk_boundary <- get_boundaries_areaname("Westminster_Parliamentary_Constituencies
 uk_boundary <- uk_boundary |> 
   janitor::clean_names() |> 
   select(long:geometry) |> 
-  mutate(name ="UK Parliament", .before = 1) 
+  mutate(name ="UK Parliament", .before = 1)
 
 # save data to file
 st_write(uk_boundary, "./data/nef_data.gpkg", layer = "uk_boundary")
@@ -62,4 +62,26 @@ st_write(council_wards, "./data/nef_data.gpkg",
          layer = "council_wards", 
          append = TRUE)
 
-                       
+
+## Import community council boundaries 
+temp <- tempfile()
+temp2 <- tempdir()
+
+url <- "https://data.spatialhub.scot/dataset/f2a5d12a-07eb-4cb8-859a-63dbcb29e6cb/resource/4f8d1c3b-d552-4dfa-afbc-917debc6dde1/download/fife_community_councils.zip"
+
+download.file(url, temp)
+temp2 <- unzip(temp)
+
+cc_boundary <- st_read(temp2[6]) 
+
+# filter cc data by uk data  
+cc_boundary <- cc_boundary |>
+  st_transform(crs = 4326) |> 
+  st_intersection(uk_boundary) |> 
+  janitor::clean_names()
+  
+# save data to file
+st_write(cc_boundary, "./data/nef_data.gpkg", 
+         layer = "community_councils", 
+         append = TRUE)
+

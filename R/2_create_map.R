@@ -16,44 +16,67 @@ scottish_boundary <- st_read("./data/nef_data.gpkg", layer =  "scottish_boundary
 # Council data  
 council_wards <- st_read("./data/nef_data.gpkg", layer =  "council_wards")
 
-## create map version 1
+cc_boundary <- st_read("./data/nef_data.gpkg", layer =  "community_councils")
+
+
+## create map version 1.1
 
 # create base map
-map_v1 <- leaflet() |>
-  addTiles() 
+map <- leaflet() |>
+  addProviderTiles(providers$CartoDB.Voyager)  |> 
+  addTiles(attribution = c('Boundary data from <a href="https://geoportal.statistics.gov.uk/search?q=BDY_ELE&sort=Date%20Created%7Ccreated%7Cdesc">ONS </a> & <a href="https://data.spatialhub.scot/dataset/community_council_boundaries-fi">Fife Council </a> under  <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government Licence v3.0 </a>')) |> 
+  addProviderTiles(providers$CartoDB.Voyager)  
   
+
+# create groups
+group <- c("UK Parliament Boundary", "Scottish Parliament Boundary", 
+           "Council Wards", "Community Councils")
+
+
 # add UK Parliament boundary
-map_v1 <- map_v1 |> 
+map <- map |> 
   addPolygons(data = uk_boundary,
-              color = "#006548", opacity = .8,
-               fillOpacity = 0,
-               group = "UK Parliament Boundary",
-              label = ~name) 
+              color = "#006548", 
+              opacity = .8,
+              fillOpacity = 0,
+              group = group[1]) 
 
 # add Scottish Parliament boundary
-map_v1 <- map_v1 |> 
+map <- map |> 
   addPolygons(data = scottish_boundary,
-               color = "#500778", opacity = .8, 
+              color = "#500778", 
+              opacity = 0.8, 
               fillOpacity = 0,
-               group = "Scottish Parliament Boundary",
-              label = ~name) 
+              group = group[2])
 
 # add council wards 
-map_v1 <- map_v1 |> 
+map <- map |> 
   addPolygons(data = council_wards,
-              color = "#004155",opacity = .8, 
+              color = "#004155",
+              opacity = 0.8, 
               fillOpacity = 0,
-              group = "Council Wards",
+              group = group[3],
               label = ~ward)
+
+# add community council areas
+map <- map |> 
+  addPolygons(data = cc_boundary,
+              color = "#007bff",
+              opacity = 0.8,
+              fillOpacity = 0,
+              group = group[4],
+              label = ~cc_name)
   
   
 # add layer control
-map_v1 <- map_v1 |> 
+map <- map |> 
   addLayersControl(
-    overlayGroups = c("UK Parliament Boundary", "Scottish Parliament Boundary", "Council Wards"),
+    overlayGroups = group,
     position = "topright") |> 
-  hideGroup(c("Scottish Parliament Boundary", "Council Wards"))
+  hideGroup(group[-1]) |>  
+  leaflet.extras::addSearchOSM() 
   
+
  
 # save the map as an HTML widget
-saveWidget(map_v1, file = "map_v1.html")
+saveWidget(map, file = "map.html")
