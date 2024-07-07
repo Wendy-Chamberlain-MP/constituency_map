@@ -3,9 +3,8 @@
 # load packages
 library(sf)
 library(dplyr)
+library(osdatahub)
 library(sgapi)
-
-
 
 ## Import Westminster data
 
@@ -85,3 +84,19 @@ st_write(cc_boundary, "./data/nef_data.gpkg",
          layer = "community_councils", 
          append = TRUE)
 
+
+## import postcode data 
+
+post_dd <- st_read("./data/raw/ONSPD_MAY_2024_UK_DD.csv", options=c("X_POSSIBLE_NAMES=long","Y_POSSIBLE_NAMES=lat"), crs = 4326)
+ 
+post_ky <- st_read("./data/raw/ONSPD_MAY_2024_UK_KY.csv", options=c("X_POSSIBLE_NAMES=long","Y_POSSIBLE_NAMES=lat"), crs = 4326)
+
+# bind data & filter by uk data  
+post_nef <- rbind(post_ky, post_dd) |> 
+  st_intersection(uk_boundary) |> 
+  select(pcd, lat, long)
+
+# save data to file
+st_write(post_nef, "./data/nef_data.gpkg", 
+         layer = "postcodes", 
+         append = TRUE)
