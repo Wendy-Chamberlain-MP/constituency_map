@@ -16,21 +16,30 @@ scottish_boundary <- st_read("./data/nef_data.gpkg", layer =  "scottish_boundary
 # Council data  
 council_wards <- st_read("./data/nef_data.gpkg", layer =  "council_wards")
 
+# CC data
 cc_boundary <- st_read("./data/nef_data.gpkg", layer =  "community_councils")
+
+# postcode data
+postcode <- st_read("./data/nef_data.gpkg", layer =  "postcodes") 
 
 
 ## create map version 1.1
 
+# define custom attributions
+attr <- paste('© <a href="https://openstreetmap.org/copyright/%22">OpenStreetMap </a> under <a href="https://opendatacommons.org/licenses/odbl/">ODbL</a>.',
+              'Contains ONS & Fife Council data licenced under <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">OGL3</a>.', 
+              'Contains OS data © Crown copyright & database right 2024.',
+              sep = " ")
+              
+
 # create base map
-map <- leaflet() |>
-  addProviderTiles(providers$CartoDB.Voyager)  |> 
-  addTiles(attribution = c('Boundary data from <a href="https://geoportal.statistics.gov.uk/search?q=BDY_ELE&sort=Date%20Created%7Ccreated%7Cdesc">ONS </a> & <a href="https://data.spatialhub.scot/dataset/community_council_boundaries-fi">Fife Council </a> under  <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government Licence v3.0 </a>')) |> 
-  addProviderTiles(providers$CartoDB.Voyager)  
+map <- leaflet() |> 
+  addTiles(attribution = attr)
   
 
 # create groups
-group <- c("UK Parliament Boundary", "Scottish Parliament Boundary", 
-           "Council Wards", "Community Councils")
+group <- c("UK Parliament", "Scottish Parliament", 
+           "Council Wards", "Community Councils", "Postcodes")
 
 
 # add UK Parliament boundary
@@ -66,7 +75,12 @@ map <- map |>
               fillOpacity = 0,
               group = group[4],
               label = ~cc_name)
-  
+
+map <- map |> 
+  addMarkers(data = postcode,
+             clusterOptions = markerClusterOptions(),
+             group = group[5],
+             label = ~pcd)
   
 # add layer control
 map <- map |> 
@@ -74,9 +88,8 @@ map <- map |>
     overlayGroups = group,
     position = "topright") |> 
   hideGroup(group[-1]) |>  
-  leaflet.extras::addSearchOSM() 
+  leaflet.extras::addSearchOSM() |> 
+  leaflet.extras::addResetMapButton()
   
-
- 
 # save the map as an HTML widget
 saveWidget(map, file = "map.html")
